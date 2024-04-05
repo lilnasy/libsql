@@ -28,21 +28,14 @@ COPY . .
 RUN cargo build -p libsql-server --release
 
 # runtime
-FROM debian:bullseye-slim
-RUN apt update
+FROM gcr.io/distroless/cc-debian12:nonroot
 
 EXPOSE 5001 8080
 VOLUME [ "/var/lib/sqld" ]
 
-RUN groupadd --system --gid 666 sqld
-RUN adduser --system --home /var/lib/sqld --uid 666 --gid 666 sqld
 WORKDIR /var/lib/sqld
-USER sqld
-
-COPY docker-entrypoint.sh /usr/local/bin
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /target/release/sqld /bin/sqld
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/bin/sqld"]
